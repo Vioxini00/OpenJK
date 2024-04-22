@@ -35,6 +35,10 @@ extern void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *so
 
 #define	ARM_ANGLE_RANGE		60
 #define	HEAD_ANGLE_RANGE	90
+#define	LARM_FOFS	2.0f
+#define	LARM_ROFS	0.0f
+#define	LARM_UOFS	-26.0f
+
 
 //------------------------------------------------------------------------------------------------------------
 void TurretPain( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, vec3_t point, int damage, int mod, int hitLoc )
@@ -739,6 +743,23 @@ void SP_misc_ns_turret( gentity_t *base )
 
 //--------------------------------------
 
+
+void bolt_head_to_arm(gentity_t* arm, gentity_t* head, float fwdOfs, float rtOfs, float upOfs)
+{
+	vec3_t	headOrg, forward, right, up;
+
+	AngleVectors(arm->currentAngles, forward, right, up);
+	VectorMA(arm->currentOrigin, fwdOfs, forward, headOrg);
+	VectorMA(headOrg, rtOfs, right, headOrg);
+	VectorMA(headOrg, upOfs, up, headOrg);
+	G_SetOrigin(head, headOrg);
+	head->currentAngles[1] = head->s.apos.trBase[1] = head->s.angles[1] = arm->currentAngles[1];
+	gi.linkentity(head);
+}
+
+
+extern void CG_FireLaser(vec3_t start, vec3_t end, vec3_t normal, vec4_t laserRGB, qboolean hit_ent);
+extern void CG_AimLaser(vec3_t start, vec3_t end, vec3_t normal);
 void laser_arm_fire (gentity_t *ent)
 {
 	vec3_t	start, end, fwd, rt, up;
@@ -780,11 +801,11 @@ void laser_arm_fire (gentity_t *ent)
 
 	if ( ent->alt_fire )
 	{
-//		CG_FireLaser( start, trace.endpos, trace.plane.normal, ent->nextTrain->startRGBA, qfalse );
+		CG_FireLaser( start, trace.endpos, trace.plane.normal, ent->nextTrain->startRGBA, qfalse );
 	}
 	else
 	{
-//		CG_AimLaser( start, trace.endpos, trace.plane.normal );
+		CG_AimLaser( start, trace.endpos, trace.plane.normal );
 	}
 }
 
@@ -812,7 +833,7 @@ void laser_arm_use (gentity_t *self, gentity_t *other, gentity_t *activator)
 		VectorCopy( self->lastEnemy->currentAngles, newAngles );
 		newAngles[1] += self->speed;
 		G_SetAngles( self->lastEnemy, newAngles );
-//		bolt_head_to_arm( self->lastEnemy, self->lastEnemy->lastEnemy, LARM_FOFS, LARM_ROFS, LARM_UOFS );
+		bolt_head_to_arm( self->lastEnemy, self->lastEnemy->lastEnemy, LARM_FOFS, LARM_ROFS, LARM_UOFS );
 		G_Sound( self->lastEnemy, G_SoundIndex( "sound/chars/l_arm/move.wav" ) );
 		break;
 	case 2:
@@ -821,7 +842,7 @@ void laser_arm_use (gentity_t *self, gentity_t *other, gentity_t *activator)
 		VectorCopy( self->lastEnemy->currentAngles, newAngles );
 		newAngles[1] -= self->speed;
 		G_SetAngles( self->lastEnemy, newAngles );
-//		bolt_head_to_arm( self->lastEnemy, self->lastEnemy->lastEnemy, LARM_FOFS, LARM_ROFS, LARM_UOFS );
+		bolt_head_to_arm( self->lastEnemy, self->lastEnemy->lastEnemy, LARM_FOFS, LARM_ROFS, LARM_UOFS );
 		G_Sound( self->lastEnemy, G_SoundIndex( "sound/chars/l_arm/move.wav" ) );
 		break;
 	case 3:
@@ -929,7 +950,7 @@ void laser_arm_start (gentity_t *base)
 	G_SetOrigin( arm, base->s.origin );
 	gi.linkentity(arm);
 	G_SetAngles( arm, armAngles );
-//	bolt_head_to_arm( arm, head, LARM_FOFS, LARM_ROFS, LARM_UOFS );
+	bolt_head_to_arm( arm, head, LARM_FOFS, LARM_ROFS, LARM_UOFS );
 	arm->s.modelindex = G_ModelIndex("models/mapobjects/dn/laser_arm.md3");
 
 	//Head

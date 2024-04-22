@@ -175,6 +175,209 @@ void CG_ExplosionEffects( vec3_t origin, float intensity, int radius, int time )
 	CGCam_Shake( realIntensity, time );
 }
 
+inline float random() {
+	return (rand() / ((float)0x7fff));
+}
+
+//returns a float between -1 and 1.0
+inline float crandom() {
+	return (2.0F * (random() - 0.5F));
+}
+
+
+float FX_DetailLevel(vec3_t origin, float near_clip, float far_clip)
+{
+	vec3_t	dir;
+	float	len;
+
+	//TODO: Account for the FOV range
+
+	VectorSubtract(origin, cg.refdef.vieworg, dir);
+	len = VectorNormalize(dir);
+
+	if (len < near_clip)
+		return 0.0f;
+
+	if (len > far_clip)
+		return 0.0f;
+
+	return (float)len / far_clip;
+}
+
+float Vector4to3(const vec4_t in, vec3_t out)
+{
+	out[0] = in[0];
+	out[1] = in[1];
+	out[2] = in[2];
+
+	return in[3];
+}
+
+void CG_Smoke2(vec3_t origin, vec3_t dir, float radius, float speed, qhandle_t shader, int flags)
+{
+	vec3_t	velocity, accel;
+
+	for (int i = 0; i < 3; i++)
+	{
+		velocity[i] = dir[i] + (0.2f * crandom());
+	}
+
+	VectorScale(velocity, speed, velocity);
+	VectorScale(velocity, -0.25f, accel);
+	accel[2] = random() * 12.0f + 6.0f;
+
+	FX_AddSprite(origin,
+		velocity,
+		accel,
+		radius + (crandom() * radius * 0.5f),
+		radius + (crandom() * radius),
+		0.9f + crandom(),
+		0.0f,
+		16.0f + random() * 45.0f,
+		0.5f,
+		2000,
+		shader,
+		flags);
+}
+
+void CG_FireLaser(vec3_t start, vec3_t end, vec3_t normal, vec4_t laserRGB, qboolean hit_ent)
+{
+	vec3_t	dir, right, up, angles, work, pos,
+		sRGB, lRGB;
+	float	scale = 1.0f, alpha;
+	int		life = 0;
+
+	if (!(FX_DetailLevel(start, 16, 1200)))
+		return;
+
+	// Orient the laser spray
+	VectorSubtract(end, start, dir);
+	VectorNormalize(dir);
+	alpha = Vector4to3(laserRGB, lRGB);
+
+	VectorMA(end, 0.5f, normal, pos);
+	MakeNormalVectors(normal, right, up);
+
+	VectorSet(sRGB, 1.0f, 0.8f, 0.8f);
+
+	FX_AddSprite(start, NULL, NULL,
+		1.75f, 1.0f,
+		alpha, 0.0f,
+		lRGB, lRGB,
+		0.0f,
+		0.0f,
+		200,
+		cgs.media.yellowSaberGlowShader);
+
+	FX_AddLine(start, end,
+		1.0f,
+		3.0f, 5.0f,
+		alpha, 0.0f,
+		lRGB, lRGB,
+		125,
+		cgs.media.yellowSaberGlowShader);
+
+	FX_AddLine(start, end,
+		1.0f,
+		0.3f, 5.0f,
+		random() * 0.4 + 0.4, 0.1f,
+		125,
+		cgs.media.yellowSaberGlowShader);
+
+	// Doing all of this extra stuff would look weird if it hits a player ent.
+	if (!hit_ent)
+	{
+		FX_AddQuad(pos, normal, NULL, NULL,
+			3.5f, 1.0f,
+			alpha, 0.0f,
+			lRGB, lRGB,
+			0,
+			cgs.media.rivetMarkShader, 0);
+
+		for (int t = 0; t < 2; t++)
+		{
+			VectorMA(pos, crandom() * 0.5f, right, work);
+			VectorMA(work, crandom() * 0.5f, up, work);
+
+			scale = crandom() * 0.5f + 1.75f;
+			life = crandom() * 300 + 2100;
+
+			VectorSet(sRGB, 1.0f, 0.7f, 0.2f);
+			FX_AddQuad(work, normal, NULL, NULL, scale, -0.1f, 1.0f, 0.0f, sRGB, sRGB, life, cgs.media.rivetMarkShader, 0);
+		}
+
+		FX_AddQuad(pos, normal, NULL, NULL, scale * 2.5f, 0.0f,	1.0f, 0.0f,	NULL, NULL, 0.0, life * 2, cgs.media.rivetMarkShader, 0);
+
+		vectoangles(normal, angles);
+		//CG_SmallSpark(end, angles); // meh
+	}
+	else
+	{
+		// However, do add a little smoke puff
+		FX_AddSprite(pos, NULL, NULL,
+			2.0f, 1.0f,
+			alpha, 0.0f,
+			lRGB, lRGB,
+			0.0f,
+			0.0f,
+			200,
+			cgs.media.rivetMarkShader);
+
+		VectorMA(end, 1, normal, dir);
+		scale = 1.0f + (random() * 3.0f);
+
+		CG_Smoke2(dir, normal, scale, 12.0f, cgs.media.rivetMarkShader, 0);
+	}
+}
+
+//------------------------------------------------------------------------------
+void CG_AimLaser(vec3_t start, vec3_t end, vec3_t normal)
+{
+	vec3_t		lRGB = { 1.0,0.0,0.0 };
+
+	// Beam
+	FX_AddLine(start, end,
+		1.0f,
+		5.5f, 5.0f,
+		random() * 0.2 + 0.2, 0.1f,
+		lRGB, lRGB,
+		150,
+		cgs.media.yellowSaberGlowShader);
+
+	FX_AddLine(start, end,
+		1.0f,
+		0.3f, 5.0f,
+		random() * 0.4 + 0.4, 0.1f,
+		125,
+		cgs.media.yellowSaberGlowShader);
+
+	// Flare at the start point
+	FX_AddSprite(start, NULL, NULL,
+		1.5 + random() * 4, 0.0,
+		0.1f, 0.0,
+		0.0,
+		0.0,
+		100,
+		cgs.media.rivetMarkShader);
+
+	// endpoint flare
+	FX_AddSprite(end, NULL, NULL,
+		2.5 + random() * 4, 0.0,
+		0.1f, 0.0,
+		0.0,
+		0.0,
+		100,
+		cgs.media.rivetMarkShader);
+
+	// oriented impact flare
+	FX_AddQuad(end, normal, NULL, NULL,
+		1.5 + random() * 2, 0.0,
+		1.0, 0.0,
+		NULL, NULL,
+		0.0,
+		120,
+		cgs.media.rivetMarkShader);
+}
 
 /*
 -------------------------
