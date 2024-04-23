@@ -314,7 +314,7 @@ void CG_FireLaser(vec3_t start, vec3_t end, vec3_t normal, vec4_t laserRGB, qboo
 	// Doing all of this extra stuff would look weird if it hits a player ent.
 	if (!hit_ent)
 	{
-		FX_AddQuad(pos, normal, NULL, NULL, 3.5f, 1.0f, alpha, 0.0f, lRGB, lRGB, 0, cgs.media.waterDropShader, 0);
+		FX_AddQuad(pos, normal, NULL, NULL, 3.5f, 1.0f, alpha, 0.0f, lRGB, lRGB, 0.0, life, cgs.media.waterDropShader, 0);
 
 		for (int t = 0; t < 2; t++)
 		{
