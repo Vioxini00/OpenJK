@@ -1221,6 +1221,14 @@ static void CG_RegisterGraphics( void ) {
 	cg.loadLCARSStage = 4;
 	CG_LoadingString( "game media shaders" );
 
+	// Laser arm
+	cgs.media.borgEyeFlareShader = cgi_R_RegisterShader("gfx/misc/borgeyeflare");
+	cgs.media.whiteLaserShader = cgi_R_RegisterShader("gfx/effects/whitelaser");
+	cgs.media.waterDropShader = cgi_R_RegisterShader("gfx/misc/drop");
+	cgs.media.sparkShader = cgi_R_RegisterShader("gfx/misc/spark");
+	cgs.media.steamShader = cgi_R_RegisterShader("gfx/misc/steam");
+	cgs.media.smokeShader = cgi_R_RegisterShader("gfx/misc/black_smoke2");
+
 	for ( i=0; i < 11; i++ )
 	{
 		cgs.media.numberShaders[i]			= cgi_R_RegisterShaderNoMip( sb_nums[i] );

@@ -184,6 +184,14 @@ typedef struct {
 	qhandle_t	personalShieldShader;
 	qhandle_t	cloakedShader;
 
+	// Laser arm
+	qhandle_t borgEyeFlareShader;
+	qhandle_t whiteLaserShader;
+	qhandle_t waterDropShader;
+	qhandle_t sparkShader;
+	qhandle_t steamShader;
+	qhandle_t smokeShader;
+
 	// Mission objectives
 	qhandle_t	objcorner1;
 	qhandle_t	objcorner2;

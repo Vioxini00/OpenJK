@@ -240,15 +240,60 @@ void CG_Smoke2(vec3_t origin, vec3_t dir, float radius, float speed, qhandle_t s
 		flags);
 }
 
+void CG_SmallSpark(vec3_t origin, vec3_t normal)
+{
+	vec3_t	dir, direction, start, end, velocity;
+	float	scale;
+	int		numSparks;
+
+	AngleVectors(normal, normal, NULL, NULL);
+
+	for (int j = 0; j < 3; j++)
+		normal[j] = normal[j] + (0.1f * crandom());
+
+	VectorNormalize(normal);
+
+	numSparks = 6 + (random() * 4.0f);
+
+	for (int i = 0; i < numSparks; i++)
+	{
+		scale = 0.1f + (random() * 0.2f);
+
+		for (int j = 0; j < 3; j++)
+			dir[j] = normal[j] + (0.7f * crandom());
+
+		VectorMA(origin, 0.0f + (random() * 0.5f), dir, start);
+		VectorMA(start, 1.0f + (random() * 1.5f), dir, end);
+
+		FX_AddLine(start,
+			end,
+			1.0f,
+			scale,
+			0.0f,
+			1.0f,
+			0.7f,
+			4.0f,
+			cgs.media.sparkShader);
+	}
+
+	VectorMA(origin, 1, normal, direction);
+
+	scale = 2.0f + (random() * 3.0f);
+	float alpha = 0.6f + (random() * 0.4f);
+
+	VectorSet(velocity, crandom() * 2, crandom() * 2, 8 + random() * 4);
+	VectorMA(velocity, 5, normal, velocity);
+
+	FX_AddSprite(direction, velocity, NULL, scale, scale, alpha, 0.0f, random() * 45.0f, 0.0f, 1000, cgs.media.steamShader, 0);
+}
+
+
 void CG_FireLaser(vec3_t start, vec3_t end, vec3_t normal, vec4_t laserRGB, qboolean hit_ent)
 {
 	vec3_t	dir, right, up, angles, work, pos,
 		sRGB, lRGB;
 	float	scale = 1.0f, alpha;
 	int		life = 0;
-
-	if (!(FX_DetailLevel(start, 16, 1200)))
-		return;
 
 	// Orient the laser spray
 	VectorSubtract(end, start, dir);
@@ -260,39 +305,16 @@ void CG_FireLaser(vec3_t start, vec3_t end, vec3_t normal, vec4_t laserRGB, qboo
 
 	VectorSet(sRGB, 1.0f, 0.8f, 0.8f);
 
-	FX_AddSprite(start, NULL, NULL,
-		1.75f, 1.0f,
-		alpha, 0.0f,
-		lRGB, lRGB,
-		0.0f,
-		0.0f,
-		200,
-		cgs.media.yellowSaberGlowShader);
+	FX_AddSprite(start, NULL, NULL, 1.75f, 1.0f, alpha, 0.0f, lRGB, lRGB, 0.0f, 0.0f, 200, cgs.media.waterDropShader, 0);
 
-	FX_AddLine(start, end,
-		1.0f,
-		3.0f, 5.0f,
-		alpha, 0.0f,
-		lRGB, lRGB,
-		125,
-		cgs.media.yellowSaberGlowShader);
+	FX_AddLine(start, end, 1.0f, 3.0f, 5.0f, alpha, 0.0f, lRGB, lRGB, 125, cgs.media.whiteLaserShader, 0);
 
-	FX_AddLine(start, end,
-		1.0f,
-		0.3f, 5.0f,
-		random() * 0.4 + 0.4, 0.1f,
-		125,
-		cgs.media.yellowSaberGlowShader);
+	FX_AddLine(start, end, 1.0f, 0.3f, 5.0f, random() * 0.4 + 0.4, 0.1f, 125, cgs.media.whiteLaserShader, 0);
 
 	// Doing all of this extra stuff would look weird if it hits a player ent.
 	if (!hit_ent)
 	{
-		FX_AddQuad(pos, normal, NULL, NULL,
-			3.5f, 1.0f,
-			alpha, 0.0f,
-			lRGB, lRGB,
-			0,
-			cgs.media.rivetMarkShader, 0);
+		FX_AddQuad(pos, normal, NULL, NULL, 3.5f, 1.0f, alpha, 0.0f, lRGB, lRGB, 0, cgs.media.waterDropShader, 0);
 
 		for (int t = 0; t < 2; t++)
 		{
@@ -303,30 +325,23 @@ void CG_FireLaser(vec3_t start, vec3_t end, vec3_t normal, vec4_t laserRGB, qboo
 			life = crandom() * 300 + 2100;
 
 			VectorSet(sRGB, 1.0f, 0.7f, 0.2f);
-			FX_AddQuad(work, normal, NULL, NULL, scale, -0.1f, 1.0f, 0.0f, sRGB, sRGB, life, cgs.media.rivetMarkShader, 0);
+			FX_AddQuad(work, normal, NULL, NULL, scale, -0.1f, 1.0f, 0.0f, sRGB, sRGB, 0.0, life, cgs.media.waterDropShader, 0);
 		}
 
-		FX_AddQuad(pos, normal, NULL, NULL, scale * 2.5f, 0.0f,	1.0f, 0.0f,	NULL, NULL, 0.0, life * 2, cgs.media.rivetMarkShader, 0);
+		FX_AddQuad(pos, normal, NULL, NULL, scale * 2.5f, 0.0f,	1.0f, 0.0f,	NULL, NULL, 0.0, life * 2, cgs.media.smokeShader, 0);
 
 		vectoangles(normal, angles);
-		//CG_SmallSpark(end, angles); // meh
+		CG_SmallSpark(end, angles);
 	}
 	else
 	{
 		// However, do add a little smoke puff
-		FX_AddSprite(pos, NULL, NULL,
-			2.0f, 1.0f,
-			alpha, 0.0f,
-			lRGB, lRGB,
-			0.0f,
-			0.0f,
-			200,
-			cgs.media.rivetMarkShader);
+		FX_AddSprite(pos, NULL, NULL, 2.0f, 1.0f, alpha, 0.0f, lRGB, lRGB, 0.0f, 0.0f, 200, cgs.media.waterDropShader, 0);
 
 		VectorMA(end, 1, normal, dir);
 		scale = 1.0f + (random() * 3.0f);
 
-		CG_Smoke2(dir, normal, scale, 12.0f, cgs.media.rivetMarkShader, 0);
+		CG_Smoke2(dir, normal, scale, 12.0f, cgs.media.steamShader, 0);
 	}
 }
 
@@ -342,14 +357,14 @@ void CG_AimLaser(vec3_t start, vec3_t end, vec3_t normal)
 		random() * 0.2 + 0.2, 0.1f,
 		lRGB, lRGB,
 		150,
-		cgs.media.yellowSaberGlowShader);
+		cgs.media.whiteLaserShader);
 
 	FX_AddLine(start, end,
 		1.0f,
 		0.3f, 5.0f,
 		random() * 0.4 + 0.4, 0.1f,
 		125,
-		cgs.media.yellowSaberGlowShader);
+		cgs.media.whiteLaserShader);
 
 	// Flare at the start point
 	FX_AddSprite(start, NULL, NULL,
@@ -358,7 +373,7 @@ void CG_AimLaser(vec3_t start, vec3_t end, vec3_t normal)
 		0.0,
 		0.0,
 		100,
-		cgs.media.rivetMarkShader);
+		cgs.media.borgEyeFlareShader);
 
 	// endpoint flare
 	FX_AddSprite(end, NULL, NULL,
@@ -367,7 +382,7 @@ void CG_AimLaser(vec3_t start, vec3_t end, vec3_t normal)
 		0.0,
 		0.0,
 		100,
-		cgs.media.rivetMarkShader);
+		cgs.media.borgEyeFlareShader);
 
 	// oriented impact flare
 	FX_AddQuad(end, normal, NULL, NULL,
@@ -376,7 +391,7 @@ void CG_AimLaser(vec3_t start, vec3_t end, vec3_t normal)
 		NULL, NULL,
 		0.0,
 		120,
-		cgs.media.rivetMarkShader);
+		cgs.media.borgEyeFlareShader);
 }
 
 /*
