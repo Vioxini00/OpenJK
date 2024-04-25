@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 extern void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *soundPath );
 
 // These define the working combat range for these suckers
-#define MIN_DISTANCE		54
+#define MIN_DISTANCE		110
 #define MIN_DISTANCE_SQR	( MIN_DISTANCE * MIN_DISTANCE )
 
 #define MAX_DISTANCE		128
@@ -157,37 +157,37 @@ void MineMonster_Attack( void )
 						|| Q_flrand(0.0f, 1.0f) > 0.8f ))
 		{
 			// Going to do ATTACK4
-			TIMER_Set( NPC, "attacking", 1750 + Q_flrand(0.0f, 1.0f) * 200 );
+			TIMER_Set( NPC, "attacking", 2000 + Q_flrand(0.0f, 1.0f) * 200 );
 			NPC_SetAnim( NPC, SETANIM_BOTH, BOTH_ATTACK4, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD );
 
-			TIMER_Set( NPC, "attack2_dmg", 950 ); // level two damage
+			TIMER_Set( NPC, "attack2_dmg", 1000 ); // level two damage
 		}
 		else if ( Q_flrand(0.0f, 1.0f) > 0.5f )
 		{
 			if ( Q_flrand(0.0f, 1.0f) > 0.8f )
 			{
 				// Going to do ATTACK3, (rare)
-				TIMER_Set( NPC, "attacking", 850 );
+				TIMER_Set( NPC, "attacking", 2000 );
 				NPC_SetAnim( NPC, SETANIM_BOTH, BOTH_ATTACK3, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD );
 
-				TIMER_Set( NPC, "attack2_dmg", 400 ); // level two damage
+				TIMER_Set( NPC, "attack2_dmg", 1000 ); // level two damage
 			}
 			else
 			{
 				// Going to do ATTACK1
-				TIMER_Set( NPC, "attacking", 850 );
+				TIMER_Set( NPC, "attacking", 1000 );
 				NPC_SetAnim( NPC, SETANIM_BOTH, BOTH_ATTACK1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD );
 
-				TIMER_Set( NPC, "attack1_dmg", 450 ); // level one damage
+				TIMER_Set( NPC, "attack1_dmg", 500 ); // level one damage
 			}
 		}
 		else
 		{
 			// Going to do ATTACK2
-			TIMER_Set( NPC, "attacking", 1250 );
+			TIMER_Set( NPC, "attacking", 1000 );
 			NPC_SetAnim( NPC, SETANIM_BOTH, BOTH_ATTACK2, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD );
 
-			TIMER_Set( NPC, "attack1_dmg", 700 ); // level one damage
+			TIMER_Set( NPC, "attack1_dmg", 500 ); // level one damage
 		}
 	}
 	else
@@ -195,11 +195,11 @@ void MineMonster_Attack( void )
 		// Need to do delayed damage since the attack animations encapsulate multiple mini-attacks
 		if ( TIMER_Done2( NPC, "attack1_dmg", qtrue ))
 		{
-			MineMonster_TryDamage( NPC->enemy, 5 );
+			MineMonster_TryDamage( NPC->enemy, 50 );
 		}
 		else if ( TIMER_Done2( NPC, "attack2_dmg", qtrue ))
 		{
-			MineMonster_TryDamage( NPC->enemy, 10 );
+			MineMonster_TryDamage( NPC->enemy, 100 );
 		}
 	}
 
@@ -254,12 +254,12 @@ void NPC_MineMonster_Pain( gentity_t *self, gentity_t *inflictor, gentity_t *oth
 {
 	G_AddEvent( self, EV_PAIN, floor((float)self->health/self->max_health*100.0f) );
 
-	if ( damage >= 10 )
+	if ( damage >= 50 )
 	{
 		TIMER_Remove( self, "attacking" );
 		TIMER_Remove( self, "attacking1_dmg" );
 		TIMER_Remove( self, "attacking2_dmg" );
-		TIMER_Set( self, "takingPain", 1350 );
+		TIMER_Set( self, "takingPain", 2000 );
 
 		VectorCopy( self->NPC->lastPathAngles, self->s.angles );
 
