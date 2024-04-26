@@ -5012,7 +5012,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 	}
 
 	// Check for team damage
-	/*
+	
 	if ( targ != attacker && !(dflags&DAMAGE_IGNORE_TEAM) && OnSameTeam (targ, attacker)  )
 	{//on same team
 		if ( !targ->client )
@@ -5020,10 +5020,10 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 			return;
 		}
 
-		if ( attacker->client && attacker->client->playerTeam == targ->noDamageTeam )
+		if (attacker->client && attacker->client->playerTeam == targ->noDamageTeam)
 		{//NPC or player shot an object on his own team
 			return;
-		}
+		}/*
 
 		if ( attacker->s.number != 0 && targ->s.number != 0 &&//player not involved in any way in this exchange
 			attacker->client && targ->client &&//two NPCs
@@ -5040,9 +5040,9 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 			{//do no damage, no armor loss, no reaction, run no scripts
 				return;
 			}
-		}
+		}*/
 	}
-	*/
+	
 
 	// add to the attacker's hit counter
 	if ( attacker->client && targ != attacker && targ->health > 0 ) {
