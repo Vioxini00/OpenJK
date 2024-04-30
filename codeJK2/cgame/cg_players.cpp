@@ -5403,7 +5403,7 @@ extern vmCvar_t	cg_thirdPersonAlpha;
 						}
 						else
 						{
-							bolt = cent->gent->handRBolt;
+							bolt = cent->gent->genericBolt2;
 						}
 					}
 

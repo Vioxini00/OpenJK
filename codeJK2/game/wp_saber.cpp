@@ -269,11 +269,11 @@ void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *psWeaponModel )
 		assert (psWeaponModel);
 		return;
 	}
-	if ( ent && ent->client && ent->client->NPC_class == CLASS_GALAKMECH )
+	/*if (ent && ent->client && ent->client->NPC_class == CLASS_GALAKMECH)
 	{//hack for galakmech, no weaponmodel
 		ent->weaponModel = -1;
 		return;
-	}
+	}*/
 
 	char weaponModel[MAX_QPATH];
 	Q_strncpyz(weaponModel, psWeaponModel, sizeof(weaponModel));
